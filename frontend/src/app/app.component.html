@@ -1,0 +1,7 @@
+<div class="wysiwyg-wrapper">
+  <app-wysiwyg-tree class="wysiwyg-tree" [structure]="currentStructure$ | async" [selectedNode]="selectedNode$  | async"></app-wysiwyg-tree>
+  <app-wysiwyg-editor class="wysiwyg-editor" [rawContent]="currentItem$.value?.content" (onSelectionChange)="handleSelectionChange($event)"></app-wysiwyg-editor>
+  <app-wysiwyg-properties class="wysiwyg-properties" (saveContent)="saveContent()" [selectedNode]="selectedNode$  | async"></app-wysiwyg-properties>
+</div>
+
+

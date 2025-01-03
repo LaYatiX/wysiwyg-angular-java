@@ -1,0 +1,15 @@
+@use '@angular/material' as mat;
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+:root {
+  @include mat.tree-overrides((
+    container-background-color: transparent
+  ));
+}
+
+.section-title {
+  padding: 1rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -1,0 +1,25 @@
+<div class="section-title">
+  Właściwości
+</div>
+
+
+@if (selectedNode?.tagName === 'IMG') {
+  <div class="properties">
+    <span>Position x: {{selectedNode?.getBoundingClientRect()?.x}}</span>
+    <span>Position y: {{selectedNode?.getBoundingClientRect()?.y}}</span>
+    <span>Width: {{selectedNode?.getBoundingClientRect()?.width}}</span>
+    <span>Height: {{selectedNode?.getBoundingClientRect()?.height}}</span>
+  </div>
+}
+
+@if (selectedNode?.tagName === 'TD' || selectedNode?.tagName === 'TR' || selectedNode?.tagName === 'TABLE') {
+  <div class="properties">
+    <span>Font: {{nodeStyles?.fontFamily}}</span>
+    <span>Weight: {{nodeStyles?.fontWeight}}</span>
+    <span>Size: {{nodeStyles?.fontSize}}</span>
+    <span>Color: {{nodeStyles?.color}}</span>
+  </div>
+}
+
+<button mat-flat-button (click)="save()">Zapisz</button>
+

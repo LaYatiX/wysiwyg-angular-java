@@ -1,0 +1,21 @@
+.wysiwyg-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  .wysiwyg-tree, wysiwyg-properties {
+    display: flex;
+  }
+
+  .wysiwyg-tree {
+    flex: 0 1 15%
+  }
+
+  .wysiwyg-properties {
+    flex: 0 1 15%
+  }
+
+  .wysiwyg-editor {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+}
