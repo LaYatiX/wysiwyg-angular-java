@@ -1,7 +1,9 @@
-<div class="wysiwyg-wrapper">
-  <app-wysiwyg-tree class="wysiwyg-tree" [structure]="currentStructure$ | async" [selectedNode]="selectedNode$  | async"></app-wysiwyg-tree>
-  <app-wysiwyg-editor class="wysiwyg-editor" [rawContent]="currentItem$.value?.content" (onSelectionChange)="handleSelectionChange($event)"></app-wysiwyg-editor>
-  <app-wysiwyg-properties class="wysiwyg-properties" (saveContent)="saveContent()" [selectedNode]="selectedNode$  | async"></app-wysiwyg-properties>
+<div class="communications-wrapper">
+  <app-communications-tree class="communications-tree" [structure]="currentStructure$ | async" [selectedNode]="selectedNode$  | async" (onNodeClick)="nodeSelected($event)"></app-communications-tree>
+  <app-communications-editor class="communications-editor" [rawContent]="currentItem$.value?.content" (onSelectionChange)="handleSelectionChange($event)" (onEditorInit)="initEditor($event)"></app-communications-editor>
+  <app-communications-properties class="communications-properties" (saveContent)="saveContent()" [selectedNode]="selectedNode$  | async"></app-communications-properties>
 </div>
+
+
 
 

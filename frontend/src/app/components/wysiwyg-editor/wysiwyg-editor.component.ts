@@ -2,18 +2,23 @@ import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, Input, OnDes
 import { EditorComponent } from '@tinymce/tinymce-angular';
 import { Editor } from 'tinymce';
 
+const tagMap: Record<string, string> = {
+  table: 'Table',
+  tr: 'Row',
+  td: 'Col',
+  col: 'Col',
+  img: 'Image'
+}
+
 export type Structure = {
   tag: string;
   children: Structure[];
-  text: string;
   node: Element;
-  active?: boolean
 }
 
 export type SelectionType = {
   rawHTML: string;
-  structure: Structure;
-  selectedPath: number[];
+  structure: Structure[];
   selectedNode?: HTMLElement
 }
 
@@ -26,6 +31,7 @@ export type SelectionType = {
 export class WysiwygEditorComponent implements AfterViewInit, OnDestroy {
   @Input() rawContent: string | undefined
   @Output() onSelectionChange = new EventEmitter<SelectionType>()
+  @Output() onEditorInit = new EventEmitter<Editor>()
   editor: Editor | null = null;
   previousSelectedNode: Node | null = null;
   init: EditorComponent['init'] = {
@@ -33,124 +39,75 @@ export class WysiwygEditorComponent implements AfterViewInit, OnDestroy {
     height: 600,
     setup: (editor: Editor) => {
       this.editor = editor;
+      this.onEditorInit.emit(editor)
       editor.on('NodeChange', (e) => {
         this.applySelectionStyle();
-        this.removeSelectionStyle();
+        this.applyDragListeners();
         this.onSelectionChange.emit(this.getEditorContent())
+        e.preventDefault();
       });
       editor.on('blur', () => {
-        this.removeSelectionStyle();
+        const body = this.editor?.dom.select('body')[0]
+        if(body)
+          this.deselectNode(body)
       });
       editor.on('init', () => {
         if(this.editor){
           this.editor.setContent(this.rawContent || '');
+          const body = this.editor.dom.select('body')[0]
+          this.deselectNode(body)
+          this.onSelectionChange.emit(this.getEditorContent())
         }
       })
     },
   };
 
-  getSelectedPath(){
-    if (this.editor) {
-      const selectedNode = this.editor.selection.getNode();
-      if (selectedNode) {
-        return this.getNodePath(selectedNode);
-      }
-    }
-    return []
-  }
-
   ngAfterViewInit(): void {
     if (this.editor) {
-      this.getEditorContent();
+      const body = this.editor.dom.select('body')[0]
+      this.deselectNode(body)
     }
+  }
+
+  deselectNode(body: HTMLElement) {
+    body.style.backgroundColor = '';
+    [...body.children].forEach((node) => this.deselectNode(node as HTMLElement))
   }
 
   getEditorContent(): SelectionType {
     if (this.editor) {
-      const content = this.editor.getContent({format: 'html'}); // Get content as HTML
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(content, 'text/html');
+      const body = this.editor.dom.select('body')
 
       return {
         rawHTML: this.editor.getContent({ format: 'raw' }),
-        structure: this.domToStructure(doc.body),
-        selectedPath: this.getSelectedPath(),
-        selectedNode: this.editor.selection.getNode()
+        structure: this.domToStructure(body[0]),
+        selectedNode: this.editor.selection.getNode() as HTMLElement
       }
     }
     throw new Error()
   }
 
-  domToStructure(element: Element): any {
-    const structure: any = {
-      tag: element.tagName.toLowerCase(),
-      children: [],
-      node: null,
-      active: false
-    };
-
-    if (element.childNodes) {
-      for (let i = 0; i < element.childNodes.length; i++) {
-        const child = element.childNodes[i];
-        if (child.nodeType === Node.TEXT_NODE) {
-          if (child.textContent?.trim() !== "") {
-            structure.text = child.textContent?.trim();
-          }
-        } else if (child.nodeType === Node.ELEMENT_NODE) {
-          structure.node = child;
-          structure.active = (child as Element).classList.contains('active');
-          structure.children.push(this.domToStructure(child as Element));
+  domToStructure(element: Element): Structure[] {
+    return [...element.children].filter(child => !child.classList.contains('mce-resizehandle')).map((child: Element) => {
+        return {
+          node: child,
+          tag: child.tagName.toLowerCase(),
+          children: this.domToStructure(child),
         }
-      }
-    }
-
-    return structure;
-  }
-
-  getNodePath(node: Node) {
-    const indexes = []
-    let path = '';
-    while (node) {
-      let nodeName = node.nodeName.toLowerCase();
-      if(node.nodeType === Node.TEXT_NODE){
-        nodeName = "#text"
-      }
-      if (node.parentNode && node.parentNode.childNodes) {
-        let index = 0;
-        for (let i = 0; i < node.parentNode.childNodes.length; i++) {
-          if (node.parentNode.childNodes[i] === node) {
-            index = i;
-            break;
-          }
-        }
-        nodeName += `[${index}]`;
-        indexes.push(index)
-      }
-      path = nodeName + (path ? ' > ' + path : '');
-      node = node.parentNode!;
-    }
-    return indexes;
+      })
   }
 
   applySelectionStyle() {
     if (this.editor) {
       const selectedNode = this.editor.selection.getNode();
-      if(selectedNode)
-        selectedNode.nonce = 'active'
       if (selectedNode && selectedNode !== this.previousSelectedNode) {
 
         this.removeSelectionStyle(); // Remove style from previously selected node
 
         if (selectedNode.nodeType === Node.ELEMENT_NODE) {
           (selectedNode as HTMLElement).style.backgroundColor = 'lightblue'; // Apply style
-          (selectedNode as HTMLElement).classList.add('active');
+          this.previousSelectedNode = selectedNode;
         }
-
-        if (this.previousSelectedNode?.nodeType === Node.ELEMENT_NODE) {
-          (this.previousSelectedNode as HTMLElement).classList.remove('active')
-        }
-
-        this.previousSelectedNode = selectedNode;
       }
     }
   }
@@ -165,6 +122,25 @@ export class WysiwygEditorComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.editor) {
       this.editor.destroy();
+    }
+  }
+
+  private applyDragListeners() {
+    if (this.editor) {
+      const elements = this.editor.dom.select('body *');
+      elements.forEach((element) => {
+        element.setAttribute('draggable', 'true');
+        const relative = {x: 0, y: 0}
+        element.addEventListener('dragstart', (event) => {
+          relative.x = event.layerX;
+          relative.y = event.layerY;
+        });
+        element.addEventListener('dragend', (event) => {
+          (event.target as HTMLElement).style.position = 'absolute';
+          (event.target as HTMLElement).style.top = event.pageY - relative.y + 'px';
+          (event.target as HTMLElement).style.left = event.pageX - relative.x + 'px';
+        });
+      });
     }
   }
 }

@@ -2,22 +2,21 @@
   Właściwości
 </div>
 
-
 @if (selectedNode?.tagName === 'IMG') {
   <div class="properties">
-    <span>Position x: {{selectedNode?.getBoundingClientRect()?.x}}</span>
-    <span>Position y: {{selectedNode?.getBoundingClientRect()?.y}}</span>
-    <span>Width: {{selectedNode?.getBoundingClientRect()?.width}}</span>
-    <span>Height: {{selectedNode?.getBoundingClientRect()?.height}}</span>
+    <div>Position X: <input type="text" [value]="nodeStyles?.left || selectedNode?.getBoundingClientRect()?.x" (input)="inputChanged($event, 'left')"></div>
+    <div>Position Y:  <input type="text" [value]="nodeStyles?.top || selectedNode?.getBoundingClientRect()?.y" (input)="inputChanged($event, 'top')"></div>
+    <div>Width: <input type="text" [value]="nodeStyles?.width || selectedNode?.getBoundingClientRect()?.width" (input)="inputChanged($event, 'width')"></div>
+    <div>Height: <input type="text" [value]="nodeStyles?.height || selectedNode?.getBoundingClientRect()?.height" (input)="inputChanged($event, 'height')"></div>
   </div>
 }
 
 @if (selectedNode?.tagName === 'TD' || selectedNode?.tagName === 'TR' || selectedNode?.tagName === 'TABLE') {
   <div class="properties">
-    <span>Font: {{nodeStyles?.fontFamily}}</span>
-    <span>Weight: {{nodeStyles?.fontWeight}}</span>
-    <span>Size: {{nodeStyles?.fontSize}}</span>
-    <span>Color: {{nodeStyles?.color}}</span>
+    <div>Font: <input type="text" [value]="nodeStyles?.fontFamily" (input)="inputChanged($event, 'font-family')"></div>
+    <div>Weight:  <input type="text" [value]="nodeStyles?.fontWeight" (input)="inputChanged($event, 'font-weight')"></div>
+    <div>Size: <input type="text" [value]="nodeStyles?.fontSize" (input)="inputChanged($event, 'font-size')"></div>
+    <div>Color: <input type="color" [value]="rgbToHex(nodeStyles?.color || 'rgb(0, 0, 0)')" (input)="inputChanged($event, 'color')"></div>
   </div>
 }
 

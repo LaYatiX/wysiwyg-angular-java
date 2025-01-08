@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import pl.gpiwosz.wysiwyg.entities.Wysiwyg;
+import pl.gpiwosz.wysiwyg.dtos.CommunicationDto;
+import pl.gpiwosz.wysiwyg.entities.Communications;
+import pl.gpiwosz.wysiwyg.mappers.CommunicationsMapper;
 import pl.gpiwosz.wysiwyg.services.WysiwygService;
 
 import java.util.List;
@@ -17,24 +19,20 @@ import java.util.UUID;
 public class WysiwygController {
 
   private final WysiwygService wysiwygService;
+  private final CommunicationsMapper communicationsMapper;
 
   @PostMapping("/api/wysiwyg")
-  public Wysiwyg save(@RequestBody Wysiwyg wysiwyg) {
-    return wysiwygService.save(wysiwyg);
-  }
-
-  @GetMapping("/hello")
-  public String save() {
-    return "OK";
+  public Communications save(@RequestBody CommunicationDto communications) {
+    return wysiwygService.save(communicationsMapper.toEntity(communications));
   }
 
   @GetMapping("/api/wysiwyg")
-  public List<Wysiwyg> getWysiwyg() {
-    return wysiwygService.getAllWysiwyg();
+  public List<CommunicationDto> getWysiwyg() {
+    return communicationsMapper.toDtoList(wysiwygService.getAllWysiwyg());
   }
 
   @GetMapping("/api/wysiwyg/{id}")
-  public Wysiwyg getWysiwyg(@PathVariable UUID id) {
+  public Communications getWysiwyg(@PathVariable UUID id) {
     return wysiwygService.getWysiwygById(id).orElseThrow();
   }
 }

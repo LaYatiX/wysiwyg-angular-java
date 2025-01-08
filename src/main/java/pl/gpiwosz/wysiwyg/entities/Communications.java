@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-public class Wysiwyg {
+public class Communications {
   @Id
   @GeneratedValue(generator = "uuid2")
   public UUID id;

@@ -6,6 +6,7 @@ import { WysiwygService } from './services/WysiwygService';
 import { BehaviorSubject, map } from 'rxjs';
 import { WysiwygContent } from './model/Wysiwyg.model';
   import { AsyncPipe } from '@angular/common';
+  import { Editor } from 'tinymce';
 
 const defaultWysiwyg = {
   content: '',
@@ -22,9 +23,10 @@ const defaultWysiwyg = {
 })
 export class AppComponent implements OnInit {
   currentItem$ = new BehaviorSubject<WysiwygContent | null>(null)
-  currentStructure$ = new BehaviorSubject<Structure | null>(null)
-  currentPath$ = new BehaviorSubject<number[]>([])
+  currentStructure$ = new BehaviorSubject<Structure[]>([])
   selectedNode$ = new BehaviorSubject<HTMLElement | null | undefined>(null)
+  editor: Editor | null = null;
+
   constructor(private wysiwygService: WysiwygService) {
   }
 
@@ -34,9 +36,8 @@ export class AppComponent implements OnInit {
     })
   }
 
-  handleSelectionChange({selectedPath, rawHTML, structure, selectedNode}: SelectionType) {
+  handleSelectionChange({rawHTML, structure, selectedNode}: SelectionType) {
     this.currentStructure$.next(structure)
-    this.currentPath$.next(selectedPath)
     this.selectedNode$.next(selectedNode)
     if(this.currentItem$.value)
       this.currentItem$.next({
@@ -47,6 +48,23 @@ export class AppComponent implements OnInit {
 
   saveContent() {
     this.wysiwygService.save(this.currentItem$.value || defaultWysiwyg).subscribe()
+  }
+
+  nodeSelected(node: HTMLElement) {
+    if (this.editor) {
+      const body = this.editor.dom.select('body')[0]
+      this.deselectNode(body)
+      node.style.backgroundColor = 'lightblue';
+    }
+  }
+
+  initEditor(editor: Editor) {
+    this.editor = editor;
+  }
+
+  deselectNode(body: HTMLElement) {
+    body.style.backgroundColor = '';
+    [...body.children].forEach((node) => this.deselectNode(node as HTMLElement))
   }
 }
 
